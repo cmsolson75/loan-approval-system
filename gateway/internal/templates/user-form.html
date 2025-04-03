@@ -1,0 +1,29 @@
+{{ block "user-form" .}}
+<div class="d-flex justify-content-center align-items-center bg-light">
+    <form class="form-group p-4 border rounded shadow bg-white" style="width: 100%; max-width: 400px;"
+        hx-swap="innerHTML" hx-post="/loan-check" hx-target="#output">
+        <div class="mb-3">
+            <label class="form-label" for="income">Annual Income:</label>
+            <input class="form-control" type="text" id="income" name="income">
+        </div>
+        <div class="mb-3">
+            <label for="amount">Loan Amount:</label>
+            <input class="form-control" type="text" id="amount" name="amount">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="term">Loan Term:</label>
+            <input class="form-control" type="text" id="term" name="term">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="score">Credit Score:</label>
+            <input class="form-control" type="text" id="score" name="score">
+        </div>
+
+        <button class="btn btn-primary w-100" type="submit">Check Approval</button>
+    </form>
+
+</div>
+
+{{ end }}

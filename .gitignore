@@ -1,0 +1,58 @@
+# Root-level ignore
+.DS_Store
+*.log
+
+# === Go specific ===
+*.exe
+*.test
+*.out
+/go.sum
+bin/
+dist/
+
+# Module cache (only if you use GOPATH mode, unlikely)
+pkg/
+vendor/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === Python specific ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.pyo
+.env
+.venv
+env/
+venv/
+pip-wheel-metadata/
+
+# Pytest cache
+.pytest_cache/
+
+# Jupyter Notebook checkpoints (if used for dev)
+.ipynb_checkpoints/
+
+# FastAPI static cache (if applicable)
+*.sqlite3
+instance/
+
+# === Docker / CI ===
+*.tar
+*.gz
+*.zip
+*.bak
+.dockerignore
+
+# === Optional: ignore large model files, if needed ===
+# Uncomment if you *don't* want to track large ONNX files
+# *.onnx
+
+# === Ignore compiled protobufs (if used in shared schema) ===
+*.pb.go
+*.pb.cc
+*.pb.h
