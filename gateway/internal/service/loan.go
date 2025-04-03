@@ -1,7 +1,7 @@
 package service
 
 import (
-	"errors"
+	"fmt"
 	"loan-gateway/gateway/internal/client"
 	"strconv"
 )
@@ -22,21 +22,22 @@ func NewLoanService(c *client.InferenceClient) *LoanService {
 }
 
 func (s *LoanService) Check(info LoanInfo) (*client.InferenceResponse, error) {
-	income, err := strconv.Atoi(info.AnnualIncome)
-	if err != nil || income <= 0 {
-		return nil, errors.New("invalid income")
+	income, err := validateNonNegativeField("Annual Income", info.AnnualIncome)
+	if err != nil {
+		return nil, err
 	}
-	amount, err := strconv.Atoi(info.LoanAmount)
-	if err != nil || amount <= 0 {
-		return nil, errors.New("invalid loan amount")
+
+	amount, err := validateNonNegativeField("Loan Amount", info.LoanAmount)
+	if err != nil {
+		return nil, err
 	}
-	term, err := strconv.Atoi(info.LoanTerm)
-	if err != nil || term < 2 || term > 30 {
-		return nil, errors.New("invalid loan term")
+	term, err := validateIntField("Loan Term", info.LoanTerm, 2, 30)
+	if err != nil {
+		return nil, err
 	}
-	score, err := strconv.Atoi(info.CreditScore)
-	if err != nil || score < 300 || score > 900 {
-		return nil, errors.New("invalid credit score")
+	score, err := validateIntField("Credit Score", info.CreditScore, 300, 900)
+	if err != nil {
+		return nil, err
 	}
 	input := client.InferenceRequest{
 		AnnualIncome: income,
@@ -46,4 +47,26 @@ func (s *LoanService) Check(info LoanInfo) (*client.InferenceResponse, error) {
 	}
 
 	return s.Client.Predict(input)
+}
+
+func validateIntField(name, value string, min, max int) (int, error) {
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, fmt.Errorf("%s must be a valid integer", name)
+	}
+	if v < min || v > max {
+		return 0, fmt.Errorf("%s must be between %d and %d", name, min, max)
+	}
+	return v, nil
+}
+
+func validateNonNegativeField(name, value string) (int, error) {
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, fmt.Errorf("%s must be a valid integer", name)
+	}
+	if v < 0 {
+		return 0, fmt.Errorf("%s can't be negative", name)
+	}
+	return v, nil
 }

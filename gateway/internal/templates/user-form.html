@@ -3,22 +3,27 @@
     <form class="form-group p-4 border rounded shadow bg-white" style="width: 100%; max-width: 400px;"
         hx-swap="innerHTML" hx-post="/loan-check" hx-target="#output">
         <div class="mb-3">
-            <label class="form-label" for="income">Annual Income:</label>
-            <input class="form-control" type="text" id="income" name="income">
+            <label class="form-label" for="income">Annual Income ($):</label>
+            <input class="form-control" type="number" id="income" name="income" min="0" required>
+            <div class="form-text">Enter yearly income in U.S. dollars</div>
         </div>
         <div class="mb-3">
-            <label for="amount">Loan Amount:</label>
-            <input class="form-control" type="text" id="amount" name="amount">
+            <label for="amount">Loan Amount ($):</label>
+            <input class="form-control" type="number" min="0" id="amount" name="amount" required>
+            <div class="form-text">Enter total requested loan amount</div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label" for="term">Loan Term:</label>
-            <input class="form-control" type="text" id="term" name="term">
+            <label class="form-label" for="term">Loan Term (years):</label>
+            <input class="form-control" type="number" min="2" max="30" id="term" name="term" required>
+            <div class="form-text">Must be between 2 and 30 years</div>
         </div>
 
         <div class="mb-3">
             <label class="form-label" for="score">Credit Score:</label>
-            <input class="form-control" type="text" id="score" name="score">
+            <input class="form-control" type="number" min="300" max="900" id="score" name="score">
+            <div class="form-text">Valid range is 300 to 900</div>
+
         </div>
 
         <button class="btn btn-primary w-100" type="submit">Check Approval</button>
