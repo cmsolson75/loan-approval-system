@@ -14,10 +14,12 @@ type LoanInfo struct {
 }
 
 type LoanService struct {
-	Client *client.InferenceClient
+	Client client.Client
 }
 
-func NewLoanService(c *client.InferenceClient) *LoanService {
+var _ Service = (*LoanService)(nil)
+
+func NewLoanService(c client.Client) *LoanService {
 	return &LoanService{Client: c}
 }
 

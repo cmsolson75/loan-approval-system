@@ -2,21 +2,20 @@ package app
 
 import (
 	"html/template"
-	"loan-gateway/gateway/internal/client"
 	"loan-gateway/gateway/internal/service"
 )
 
 type App struct {
 	Templates   *template.Template
-	LoanService *service.LoanService
+	LoanService service.Service
 }
 
-func New(apiURL string) *App {
+func New(svc service.Service) *App {
 	tmpl := template.Must(template.ParseGlob("internal/templates/*.html"))
-	client := client.NewClient(apiURL)
-	service := service.NewLoanService(client)
+	// client := client.NewClient(apiURL)
+	// service := service.NewLoanService(client)
 	return &App{
 		Templates:   tmpl,
-		LoanService: service,
+		LoanService: svc,
 	}
 }

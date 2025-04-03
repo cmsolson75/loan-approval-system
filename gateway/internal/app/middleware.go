@@ -1,6 +1,7 @@
 package app
 
 import (
+	"loan-gateway/gateway/internal/config"
 	"log"
 	"net"
 	"net/http"
@@ -42,25 +43,15 @@ var (
 	visitors = make(map[string]*visitor)
 )
 
-// var visitors = make(map[string]*rate.Limiter)
-// var mu sync.Mutex
-// All of this should be in config
-const (
-	requestInterval = 6 * time.Second
-	burstCapacity   = 5
-	visitorTTL      = 10 * time.Minute
-	cleanupInterval = 5 * time.Minute
-)
-
-func StartRateLimiterCleanup() {
+func StartRateLimiterCleanup(cfg *config.Config) {
 	go func() {
-		ticker := time.NewTicker(cleanupInterval)
+		ticker := time.NewTicker(cfg.RateCleanup)
 		defer ticker.Stop()
 
 		for range ticker.C {
 			mu.Lock()
 			for ip, v := range visitors {
-				if time.Since(v.lastSeen) > visitorTTL {
+				if time.Since(v.lastSeen) > cfg.RateTTL {
 					delete(visitors, ip)
 				}
 			}
@@ -69,7 +60,7 @@ func StartRateLimiterCleanup() {
 	}()
 }
 
-func getVisitor(ip string) *rate.Limiter {
+func getVisitor(cfg *config.Config, ip string) *rate.Limiter {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -77,7 +68,7 @@ func getVisitor(ip string) *rate.Limiter {
 		v.lastSeen = time.Now()
 		return v.limiter
 	}
-	limiter := rate.NewLimiter(rate.Every(requestInterval), burstCapacity)
+	limiter := rate.NewLimiter(rate.Every(cfg.RateInterval), cfg.RateBurst)
 	visitors[ip] = &visitor{
 		limiter:  limiter,
 		lastSeen: time.Now(),
@@ -85,23 +76,26 @@ func getVisitor(ip string) *rate.Limiter {
 	return limiter
 }
 
-func RateLimitMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ip, _, err := net.SplitHostPort((r.RemoteAddr))
-		if err != nil {
-			http.Error(w, "unable to determin client IP", http.StatusInternalServerError)
-			return
-		}
-		limiter := getVisitor(ip)
-		if !limiter.Allow() {
-			log.Printf("BLOCKED: rate limit exceeded for IP %s", ip)
-			http.Error(w, "Too many Requests", http.StatusTooManyRequests)
-			return
-		}
-		log.Printf("ALLOWED: %s", ip)
+func RateLimitMiddleware(cfg *config.Config) Middleware {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ip, _, err := net.SplitHostPort((r.RemoteAddr))
+			if err != nil {
+				http.Error(w, "unable to determine client IP", http.StatusInternalServerError)
+				return
+			}
+			limiter := getVisitor(cfg, ip)
+			if !limiter.Allow() {
+				log.Printf("BLOCKED: rate limit exceeded for IP %s", ip)
+				http.Error(w, "Too many Requests", http.StatusTooManyRequests)
+				return
+			}
+			log.Printf("ALLOWED: %s", ip)
 
-		next(w, r)
+			next(w, r)
+		}
 	}
+
 }
 
 func ChainMiddleware(h http.HandlerFunc, mws ...Middleware) http.HandlerFunc {

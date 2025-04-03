@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 )
 
 type InferenceRequest struct {
@@ -19,6 +20,12 @@ type InferenceResponse struct {
 	Confidence     float64 `json:"confidence"`
 }
 
+type Client interface {
+	Predict(input InferenceRequest) (*InferenceResponse, error)
+}
+
+var _ Client = (*InferenceClient)(nil)
+
 type InferenceClient struct {
 	Endpoint string
 	HTTP     *http.Client
@@ -27,7 +34,7 @@ type InferenceClient struct {
 func NewClient(endpoint string) *InferenceClient {
 	return &InferenceClient{
 		Endpoint: endpoint,
-		HTTP:     &http.Client{},
+		HTTP:     &http.Client{Timeout: 10 * time.Second},
 	}
 }
 

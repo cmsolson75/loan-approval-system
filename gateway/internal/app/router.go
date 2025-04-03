@@ -1,19 +1,23 @@
 package app
 
-import "net/http"
+import (
+	"loan-gateway/gateway/internal/config"
+	"net/http"
+)
 
-func (a *App) Router() http.Handler {
+func (a *App) Router(cfg *config.Config) http.Handler {
 	mux := http.NewServeMux()
+	rateLimitMw := RateLimitMiddleware(cfg)
 	mux.HandleFunc("GET /",
 		ChainMiddleware(a.HandleIndex,
 			RecoveryMiddleware,
 			LoggingMiddleware,
-			RateLimitMiddleware))
+			rateLimitMw))
 
 	mux.HandleFunc("POST /loan-check",
 		ChainMiddleware(a.HandleLoanCheck,
 			RecoveryMiddleware,
 			LoggingMiddleware,
-			RateLimitMiddleware))
+			rateLimitMw))
 	return mux
 }
