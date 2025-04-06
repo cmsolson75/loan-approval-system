@@ -1,10 +1,11 @@
 package app
 
 import (
-	"loan-gateway/gateway/internal/config"
+	"loan-gateway/internal/config"
 	"net/http"
 )
 
+// Router returns the configured HTTP handler with routing and middleware applied.
 func (a *App) Router(cfg *config.Config) http.Handler {
 	mux := http.NewServeMux()
 	rateLimitMw := RateLimitMiddleware(cfg)

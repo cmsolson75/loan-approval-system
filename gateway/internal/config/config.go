@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Config holds all runtime configuration values.
 type Config struct {
 	APIEndpoint  string        `mapstructure:"inference_api_url"`
 	Port         string        `mapstructure:"port"`
@@ -17,6 +18,7 @@ type Config struct {
 	RateCleanup  time.Duration `mapstructure:"rate_limit_cleanup"`
 }
 
+// Load parses configuration from environment or .env file and returns a Config instance.
 func Load() (*Config, error) {
 	viper.SetConfigFile(".env")
 	viper.SetEnvPrefix("GATEWAY")

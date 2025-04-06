@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"loan-gateway/gateway/internal/app"
-	"loan-gateway/gateway/internal/client"
-	"loan-gateway/gateway/internal/config"
-	"loan-gateway/gateway/internal/service"
+	"loan-gateway/internal/app"
+	"loan-gateway/internal/client"
+	"loan-gateway/internal/config"
+	"loan-gateway/internal/service"
 	"log"
 	"net/http"
 )
 
+// main initializes configuration, services, and starts the HTTP server.
 func main() {
 	cfg, err := config.Load()
 	if err != nil {

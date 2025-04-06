@@ -1,7 +1,7 @@
 package app
 
 import (
-	"loan-gateway/gateway/internal/config"
+	"loan-gateway/internal/config"
 	"log"
 	"net"
 	"net/http"
@@ -11,8 +11,10 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// Middleware defines a function that wraps an http.HandlerFunc.
 type Middleware func(http.HandlerFunc) http.HandlerFunc
 
+// LoggingMiddleware logs the duration of each HTTP request.
 func LoggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -21,6 +23,7 @@ func LoggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// RecoveryMiddleware recovers from panics and returns 500 Internal Server Error.
 func RecoveryMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -43,6 +46,7 @@ var (
 	visitors = make(map[string]*visitor)
 )
 
+// StartRateLimiterCleanup launches a goroutine to periodically clean up expired rate limiters.
 func StartRateLimiterCleanup(cfg *config.Config) {
 	go func() {
 		ticker := time.NewTicker(cfg.RateCleanup)
@@ -76,6 +80,7 @@ func getVisitor(cfg *config.Config, ip string) *rate.Limiter {
 	return limiter
 }
 
+// RateLimitMiddleware returns middleware that applies IP-based rate limiting.
 func RateLimitMiddleware(cfg *config.Config) Middleware {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +103,7 @@ func RateLimitMiddleware(cfg *config.Config) Middleware {
 
 }
 
+// ChainMiddleware applies a sequence of middlewares to a handler.
 func ChainMiddleware(h http.HandlerFunc, mws ...Middleware) http.HandlerFunc {
 	for i := len(mws) - 1; i >= 0; i-- {
 		h = mws[i](h)

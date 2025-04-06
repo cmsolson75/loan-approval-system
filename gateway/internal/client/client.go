@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// InferenceRequest defines the input payload sent to the inference API.
 type InferenceRequest struct {
 	AnnualIncome int `json:"annual_income"`
 	LoanAmount   int `json:"loan_amount"`
@@ -15,22 +16,26 @@ type InferenceRequest struct {
 	CreditScore  int `json:"credit_score"`
 }
 
+// InferenceResponse defines the output returned by the inference API.
 type InferenceResponse struct {
 	ApprovalStatus string  `json:"approval_status"`
 	Confidence     float64 `json:"confidence"`
 }
 
+// Client defines an interface for ML inference.
 type Client interface {
 	Predict(input InferenceRequest) (*InferenceResponse, error)
 }
 
 var _ Client = (*InferenceClient)(nil)
 
+// InferenceClient implements Client using HTTP.
 type InferenceClient struct {
 	Endpoint string
 	HTTP     *http.Client
 }
 
+// NewClient returns a new HTTP inference client.
 func NewClient(endpoint string) *InferenceClient {
 	return &InferenceClient{
 		Endpoint: endpoint,
@@ -38,6 +43,7 @@ func NewClient(endpoint string) *InferenceClient {
 	}
 }
 
+// Predict sends a prediction request to the inference API and decodes the response.
 func (c *InferenceClient) Predict(input InferenceRequest) (*InferenceResponse, error) {
 	body, _ := json.Marshal(input)
 	resp, err := c.HTTP.Post(c.Endpoint, "application/json", bytes.NewBuffer(body))

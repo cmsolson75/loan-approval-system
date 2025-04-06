@@ -2,10 +2,11 @@ package service
 
 import (
 	"fmt"
-	"loan-gateway/gateway/internal/client"
+	"loan-gateway/internal/client"
 	"strconv"
 )
 
+// LoanInfo holds user-submitted loan application data.
 type LoanInfo struct {
 	AnnualIncome string
 	LoanAmount   string
@@ -13,16 +14,19 @@ type LoanInfo struct {
 	CreditScore  string
 }
 
+// LoanService provides loan checking using a prediction client.
 type LoanService struct {
 	Client client.Client
 }
 
 var _ Service = (*LoanService)(nil)
 
+// NewLoanService returns a new LoanService using the provided client.
 func NewLoanService(c client.Client) *LoanService {
 	return &LoanService{Client: c}
 }
 
+// Check validates loan input and invokes the client to get a prediction.
 func (s *LoanService) Check(info LoanInfo) (*client.InferenceResponse, error) {
 	income, err := validateNonNegativeField("Annual Income", info.AnnualIncome)
 	if err != nil {

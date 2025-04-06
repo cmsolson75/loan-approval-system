@@ -2,14 +2,16 @@ package app
 
 import (
 	"fmt"
-	"loan-gateway/gateway/internal/service"
+	"loan-gateway/internal/service"
 	"net/http"
 )
 
+// HandleIndex renders the index page.
 func (a *App) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	a.Render(w, "index.html", nil)
 }
 
+// HandleLoanCheck processes loan form input and renders prediction result.
 func (a *App) HandleLoanCheck(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
