@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  inference:
+    build:
+      context: ./inference_service
+    container_name: inference_service
+    ports:
+      - "8000:8000"
+    env_file:
+      - inference_service/.env
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./gateway
+    container_name: loan_gateway
+    ports:
+      - "8020:8020"
+    env_file:
+      - gateway/.env
+    depends_on:
+      - inference
+    restart: unless-stopped

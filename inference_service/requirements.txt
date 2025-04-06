@@ -1,0 +1,6 @@
+fastapi
+pydantic-settings
+onnxruntime
+numpy
+uvicorn[standard]
+python-dotenv
