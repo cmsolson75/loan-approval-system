@@ -2,94 +2,104 @@
 
 ## Overview
 
-This project is an educational demonstration of building and deploying a machine learning system using **PyTorch (ONNX export)**, **FastAPI**, and a frontend interface built in **Go** using **HTMX and `html/template`**. It walks through data preprocessing, model training, API design, and interface development for a real-world binary classification task (loan approval prediction).
+Educational project demonstrating an end-to-end ML pipeline:
+- Train and export a PyTorch model to ONNX
+- Serve predictions via FastAPI
+- Interface through a Go-based frontend with HTMX
+- Deploy using Docker Compose to a VPS
 
-## Features
+## Architecture
 
-- **Machine Learning Model**: A PyTorch-based MLP with input normalization, exported to **ONNX** for inference.
-- **Data Processing**: Custom preprocessing pipeline written in Python using **pandas**.
-- **API Deployment**: A **FastAPI** backend serves predictions from the ONNX model.
-- **Form-Based UI**: A simple HTML form using **HTMX** and **Bootstrap**, served from a **Go-based** HTTP server.
-- **Rate Limiting**: Configurable request throttling implemented in the Go gateway using token buckets.
-- **Modular Structure**: Clear separation of training, inference, and presentation layers.
+```
+User ↔ NGINX ↔ Go Gateway ↔ FastAPI (ONNX model)
+```
+
+## Key Technologies
+
+- **PyTorch / ONNX** – Training and optimized inference
+- **FastAPI** – REST API backend
+- **Go** – HTTP UI and client interface
+- **HTMX + Bootstrap** – Dynamic form-based UI
+- **Docker Compose** – Multi-service deployment
+- **Viper / Pydantic** – Configuration management
+
+---
 
 ## Project Structure
 
 ```
 .
-├── gateway                  # Go-based frontend
-│   ├── cmd/gateway          # Entry point
-│   ├── internal/
-│   │   ├── app              # Form handlers, routing, middleware
-│   │   ├── client           # REST client to inference API
-│   │   ├── config           # Viper-based configuration
-│   │   └── templates        # HTML templates (HTMX compatible)
-├── inference_service        # Python backend (FastAPI)
-│   ├── api/routes.py        # Predict endpoint
-│   ├── core/                # Models, validators, services
-│   ├── repository/          # ONNX runtime wrapper
-│   └── config.py
-├── training                 # Offline training scripts
-│   ├── config/config.yaml
-│   ├── data/                # CSV dataset
-│   ├── model/               # PyTorch + ONNX pipeline
-│   └── src/                 # Training utilities
+├── gateway/              # Go-based frontend
+├── inference_service/    # FastAPI backend
+├── training/             # Model training + ONNX export
+├── docker-compose.yml
+├── Deploy.md             # VPS deployment instructions
+└── README.md
 ```
 
 ---
 
-## **Installation & Setup**
+## Training
 
-### **Option 1: Manual Setup (No Docker Yet)**
+Train the model using PyTorch and export to ONNX.
 
-#### **Step 1: Install Dependencies**
+### Requirements
 
-- **Python 3.10+**
-- **Go 1.21+**
-
-Install Python packages:
-
-```sh
+```bash
 cd training
 pip install -r requirements.txt
-pip install onnxruntime fastapi uvicorn pydantic-settings
 ```
 
-Install Go modules (from the `gateway` directory):
-
-```sh
-go mod tidy
+Ensure dataset exists:
 ```
+training/data/loan_approval_dataset.csv
+```
+
+Update training config in:
+```
+training/config/config.yaml
+```
+
+### Run Training
+
+```bash
+python main.py
+```
+
+This will:
+- Preprocess data
+- Train the model
+- Evaluate test accuracy
+- Export ONNX model to `LoanApprovalPredictor.onnx`
 
 ---
 
-#### **Step 2: Run the Inference Server**
+## Running Locally (Manual)
 
-```sh
+### Python Inference API
+
+```bash
 cd inference_service
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-This launches the **FastAPI** backend which serves predictions from the ONNX model.
+### Go Gateway UI
 
----
-
-#### **Step 3: Run the Gateway UI**
-
-```sh
+```bash
 cd gateway/cmd/gateway
 go run main.go
 ```
 
-Access the UI at `http://localhost:8020`. The form will submit to the API and display results dynamically using HTMX.
+Open: [http://localhost:8020](http://localhost:8020)
 
 ---
 
-## **API Endpoints**
+## API
 
-### **POST /predict**
+### POST /predict
 
-**Request Body**:
+**Request**
+
 ```json
 {
   "annual_income": 800000,
@@ -99,7 +109,8 @@ Access the UI at `http://localhost:8020`. The form will submit to the API and di
 }
 ```
 
-**Response**:
+**Response**
+
 ```json
 {
   "approval_status": "approved",
@@ -107,53 +118,79 @@ Access the UI at `http://localhost:8020`. The form will submit to the API and di
 }
 ```
 
-Validation is enforced via Pydantic validators with field-level constraints (non-negative values, valid score range, etc.).
+---
+
+## Deployment (VPS)
+
+Production deployment using Docker Compose.
+
+### Steps
+
+1. Provision VM (Ubuntu 22.04)
+2. Install Docker and Compose
+3. Transfer project files
+4. Add `.env` files
+5. Run:
+
+```bash
+docker-compose build
+docker-compose up -d
+```
+
+See full details in [Deploy.md](./Deploy.md).
 
 ---
 
-## Key Technologies
+## Educational Objectives
 
-- **PyTorch / ONNX** – Offline model training + runtime-optimized inference
-- **FastAPI** – REST API serving the ONNX model
-- **Go** – Lightweight web server and client using standard lib + `net/http`
-- **HTMX + Bootstrap** – Dynamic, responsive HTML UI
-- **ONNX Runtime** – High-speed inference execution engine
-- **Viper** – Environment configuration and rate limiter setup
+This project is designed as a reference architecture for real-world ML model deployment.
 
----
+### Core Topics
 
-## Educational Goals
+- **Model Training and Export**  
+  Train a PyTorch model and export it to ONNX for portable, runtime-agnostic inference.
 
-This project is designed as a **learning resource** for:
+- **Inference API Design (FastAPI + ONNX Runtime)**  
+  Implement a minimal Python wrapper over ONNX Runtime, exposing a REST endpoint for predictions. This simulates production ML deployment where Python is used purely for orchestration and compatibility with ONNX, TensorRT, or other backends.
 
-- Training and exporting PyTorch models with ONNX
-- Building REST APIs with FastAPI and Pydantic validation
-- Using Go to implement basic web services and form interfaces
-- Integrating Python inference with Go-based UI
-- Applying rate-limiting middleware in Go
-- Designing modular and maintainable ML services
+- **Gateway Abstraction in Go**  
+  Use a statically compiled gateway (in Go) to handle:
+  - Form input validation
+  - Rate limiting
+  - UI rendering
+  - External API communication (Python service)
 
----
+  This reflects patterns commonly used in production where performance-critical services are isolated from Python inference backends.
 
-## Missing Features
+- **Deployment via Docker Compose**  
+  Coordinate multiple services (inference API, gateway, NGINX) using container orchestration. Demonstrates service wiring, `.env` config loading, and isolated runtime environments.
 
-- **No Test Coverage**: This project currently lacks unit or integration tests. If deployed in production, test coverage for both the Go gateway and Python API should be added.
-- **No Containerization**: There are no Dockerfiles or Compose configurations. Containerization is planned for future versions.
+- **UI-Driven Interaction with HTMX**  
+  Serve a client-facing form to submit inference requests and render results dynamically. No JavaScript bundling or frameworks; just HTML, HTMX, and Bootstrap.
+
+### Deployment Model Emulated
+
+This architecture reflects a common production deployment pattern:
+
+[Client] → [NGINX] → [Gateway (Go)] → [Inference API (Python/ONNX)]
+
+
+This separation of concerns:
+- Decouples model execution from request handling
+- Enables performant, scalable HTTP interfaces
+- Isolates Python execution to the minimal required footprint
+- Makes it easier to replace models without touching frontend or gateway logic
+
+This project can serve as a foundational template or reference implementation for lightweight, containerized ML deployments.
 
 ---
 
 ## Suggested Extensions
 
-- **Add Testing**: Write unit tests for:
-  - FastAPI models and routes
-  - ONNX inference logic
-  - Go middleware and service validation
-- **Containerize the Project**:
-  - Add Dockerfiles for both services
-  - Define `docker-compose.yml` for orchestration
-- **Deploy to a Cloud Provider**:
-  - Deploy the FastAPI service on **AWS**, **GCP**, or **Render**
-  - Host the Go UI on **VPS**, **Cloud Run**, or **Netlify (static wrapper)**
-- **Add Logging and Metrics**:
-  - Use **Prometheus** or **OpenTelemetry** for monitoring
-  - Add structured logging for Go and Python
+- **Add Testing**:
+  - Unit tests for FastAPI routes and models
+  - ONNX inference logic validation
+  - Gateway service logic and middleware
+- **Add Observability**:
+  - Structured logging (Python/Go)
+  - Basic metrics via Prometheus or OpenTelemetry

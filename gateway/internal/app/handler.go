@@ -21,7 +21,6 @@ func (a *App) HandleLoanCheck(w http.ResponseWriter, r *http.Request) {
 		LoanTerm:     r.FormValue("term"),
 		CreditScore:  r.FormValue("score"),
 	}
-	// bad name: need to refactor
 	result, err := a.LoanService.Check(info)
 	if err != nil {
 		a.Render(w, "text-display.html", map[string]any{"Message": err.Error()})

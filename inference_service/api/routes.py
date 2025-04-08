@@ -10,6 +10,19 @@ async def predict(
     request: InferenceRequest,
     model_service: LoanApprovalService = Depends(load_model_service),
 ) -> InferenceResponse:
+    """
+    Return loan approval prediction based on request payload.
+
+    Args:
+        request (InferenceRequest): Input features.
+        model_service (LoanApprovalService): Service used to perform prediction.
+
+    Returns:
+        InferenceResponse: Approval status and confidence.
+
+    Raises:
+        HTTPException: If model evaluation fails.
+    """
     try:
         result = model_service.evaluate(
             request.annual_income,
